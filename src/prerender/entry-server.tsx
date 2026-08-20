@@ -3,9 +3,10 @@
  * public marketing pages to static HTML so crawlers get real content without
  * executing JavaScript. The browser then hydrates the same routes normally.
  */
+
 import { renderToString } from "react-dom/server";
-import { StaticRouter } from "react-router-dom/server";
-import { Routes, Route, Outlet } from "react-router-dom";
+import { StaticRouter } from "react-router";
+import { Routes, Route, Outlet } from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -35,7 +36,12 @@ const MarketingLayout = () => (
 
 export function render(url: string): string {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+    defaultOptions: {
+      queries: {
+        retry: false,
+        staleTime: Infinity,
+      },
+    },
   });
 
   return renderToString(
@@ -60,6 +66,6 @@ export function render(url: string): string {
           </AuthProvider>
         </StaticRouter>
       </TooltipProvider>
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
