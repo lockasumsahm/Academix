@@ -114,6 +114,7 @@
     "postcss": "8.5.26",
     "rollup": "4.62.4",
     "ws": "8.21.3",
-    "@remix-run/router": "1.23.4"
+    "@remix-run/router": "1.23.4",
+    "lodash": "4.18.1"
   }
 }
