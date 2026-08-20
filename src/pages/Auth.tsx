@@ -80,17 +80,24 @@ const Auth = () => {
 
   const handleGoogle = async () => {
     setLoading(true);
+
     sessionStorage.setItem("academix:next", next);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth`,
+      },
     });
-    if (result.error) {
+
+    if (error) {
       setLoading(false);
-      toast({ title: "Google sign-in failed", description: result.error.message, variant: "destructive" });
-      return;
+      toast({
+        title: "Google sign-in failed",
+        description: error.message,
+        variant: "destructive",
+      });
     }
-    if (result.redirected) return;
-    navigate(next, { replace: true });
   };
 
   const handleLogin = async (e: React.FormEvent) => {
