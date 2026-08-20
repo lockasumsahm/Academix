@@ -5,8 +5,8 @@
  */
 
 import { renderToString } from "react-dom/server";
-import { StaticRouter } from "react-router";
-import { Routes, Route, Outlet } from "react-router";
+import { StaticRouter } from "react-router-dom";
+import { Routes, Route, Outlet } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/hooks/useAuth";
