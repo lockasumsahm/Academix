@@ -1,0 +1,1 @@
+delete from public.newsletter_subscribers where email = 'test-e2e@example.com';

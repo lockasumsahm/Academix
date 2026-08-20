@@ -1,0 +1,50 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    # Weekly re-scan so newly disclosed dependency CVEs get caught
+    - cron: "0 6 * * 1"
+
+jobs:
+  scan:
+    name: Static + dependency scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Static security check (blocking)
+        run: bunx tsx scripts/security-check.ts
+
+      - name: Dependency vulnerability audit
+        run: bun audit --audit-level=high
+
+      - name: Type check
+        run: bunx tsc --noEmit
+
+      - name: Production build (runs the security gate again via prebuild)
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+
+      - name: Verify security headers are shipped
+        run: |
+          test -f dist/_headers || { echo "dist/_headers missing"; exit 1; }
+          grep -q "Content-Security-Policy" dist/_headers
+          grep -q "Strict-Transport-Security" dist/_headers
+          grep -q "X-Content-Type-Options" dist/_headers
+          grep -q "Content-Security-Policy" dist/index.html
+          echo "Security headers present."
