@@ -37,95 +37,16 @@ const Auth = () => {
   const [forgotOpen, setForgotOpen] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
+  // OAuth callback handling is intentionally NOT done manually here.
+  // Supabase auth client has detectSessionInUrl:true and automatically
+  // exchanges the PKCE ?code=... callback for a session.
 
-    const finishOAuth = async () => {
-      const url = new URL(window.location.href);
-      const code = url.searchParams.get("code");
-
-      if (!code) return;
-
-      console.log("[Academix Auth] OAuth callback detected");
-
-      try {
-        const { data, error } =
-          await supabase.auth.exchangeCodeForSession(code);
-
-        if (!mounted) return;
-
-        if (error) {
-          console.error(
-            "[Academix Auth] OAuth code exchange failed:",
-            error
-          );
-
-          toast({
-            title: "Google sign-in failed",
-            description: error.message,
-            variant: "destructive",
-          });
-
-          return;
-        }
-
-        if (!data.session) {
-          console.error(
-            "[Academix Auth] OAuth exchange returned no session"
-          );
-          return;
-        }
-
-        console.log(
-          "[Academix Auth] OAuth session established:",
-          data.session.user.email
-        );
-
-        url.searchParams.delete("code");
-
-        const cleanUrl =
-          url.pathname +
-          (url.searchParams.toString()
-            ? `?${url.searchParams.toString()}`
-            : "");
-
-        window.history.replaceState(
-          {},
-          document.title,
-          cleanUrl
-        );
-
-        navigate(next, { replace: true });
-      } catch (error) {
-        console.error(
-          "[Academix Auth] OAuth callback error:",
-          error
-        );
-      }
-    };
-
-    finishOAuth();
-
-    const { data: sub } = supabase.auth.onAuthStateChange(
-      (event) => {
-        console.log("[Academix Auth] Auth event:", event);
-
-        if (!mounted) return;
-
-        if (event === "PASSWORD_RECOVERY") {
-          setRecovery(true);
-        }
-      }
-    );
-
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
-    };
-  }, [navigate, next, toast]);
 
   useEffect(() => {
-    if (!authLoading && user && !recovery) navigate(next, { replace: true });
+    if (!authLoading && user && !recovery) {
+      console.log("[Academix Auth] Authenticated. Redirecting to:", next);
+      navigate(next, { replace: true });
+    }
   }, [user, authLoading, next, navigate, recovery]);
 
   const sendReset = async (e: React.FormEvent) => {
@@ -181,6 +102,8 @@ const Auth = () => {
 
     const redirectTo =
       `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
+
+    console.log("[Academix Auth] Google OAuth redirect:", redirectTo);
 
     console.log("[Academix Auth] OAuth redirect:", redirectTo);
 
