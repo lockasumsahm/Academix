@@ -38,11 +38,91 @@ const Auth = () => {
   const [forgotEmail, setForgotEmail] = useState("");
 
   useEffect(() => {
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") setRecovery(true);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    let mounted = true;
+
+    const finishOAuth = async () => {
+      const url = new URL(window.location.href);
+      const code = url.searchParams.get("code");
+
+      if (!code) return;
+
+      console.log("[Academix Auth] OAuth callback detected");
+
+      try {
+        const { data, error } =
+          await supabase.auth.exchangeCodeForSession(code);
+
+        if (!mounted) return;
+
+        if (error) {
+          console.error(
+            "[Academix Auth] OAuth code exchange failed:",
+            error
+          );
+
+          toast({
+            title: "Google sign-in failed",
+            description: error.message,
+            variant: "destructive",
+          });
+
+          return;
+        }
+
+        if (!data.session) {
+          console.error(
+            "[Academix Auth] OAuth exchange returned no session"
+          );
+          return;
+        }
+
+        console.log(
+          "[Academix Auth] OAuth session established:",
+          data.session.user.email
+        );
+
+        url.searchParams.delete("code");
+
+        const cleanUrl =
+          url.pathname +
+          (url.searchParams.toString()
+            ? `?${url.searchParams.toString()}`
+            : "");
+
+        window.history.replaceState(
+          {},
+          document.title,
+          cleanUrl
+        );
+
+        navigate(next, { replace: true });
+      } catch (error) {
+        console.error(
+          "[Academix Auth] OAuth callback error:",
+          error
+        );
+      }
+    };
+
+    finishOAuth();
+
+    const { data: sub } = supabase.auth.onAuthStateChange(
+      (event) => {
+        console.log("[Academix Auth] Auth event:", event);
+
+        if (!mounted) return;
+
+        if (event === "PASSWORD_RECOVERY") {
+          setRecovery(true);
+        }
+      }
+    );
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [navigate, next, toast]);
 
   useEffect(() => {
     if (!authLoading && user && !recovery) navigate(next, { replace: true });
@@ -80,17 +160,45 @@ const Auth = () => {
   const handleGoogle = async () => {
     setLoading(true);
 
+    const params = new URLSearchParams(window.location.search);
+
+    let next = params.get("next");
+
+    if (!next) {
+      next = sessionStorage.getItem("academix:next");
+    }
+
+    if (
+      !next ||
+      !next.startsWith("/") ||
+      next.startsWith("//") ||
+      next.startsWith("/auth")
+    ) {
+      next = "/";
+    }
+
     sessionStorage.setItem("academix:next", next);
+
+    const redirectTo =
+      `${window.location.origin}/auth?next=${encodeURIComponent(next)}`;
+
+    console.log("[Academix Auth] OAuth redirect:", redirectTo);
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo,
+        queryParams: {
+          access_type: "offline",
+          prompt: "select_account",
+        },
       },
     });
 
     if (error) {
+      console.error("[Academix Auth] Google OAuth error:", error);
       setLoading(false);
+
       toast({
         title: "Google sign-in failed",
         description: error.message,
