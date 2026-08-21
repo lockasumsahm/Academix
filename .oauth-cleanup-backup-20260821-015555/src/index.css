@@ -1,0 +1,117 @@
+/* Fonts are loaded non-blockingly from index.html (preconnect + async stylesheet). */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Paper & Ink — warm paper ground, ink type, editorial restraint */
+    --background: 43 26% 95%;
+    --foreground: 0 0% 12%;
+
+    --card: 44 40% 98%;
+    --card-foreground: 0 0% 12%;
+
+    --popover: 44 40% 98%;
+    --popover-foreground: 0 0% 12%;
+
+    --primary: 0 0% 6%;
+    --primary-foreground: 43 30% 96%;
+
+    --secondary: 38 19% 90%;
+    --secondary-foreground: 0 0% 12%;
+
+    --muted: 38 19% 90%;
+    --muted-foreground: 30 6% 40%;
+
+    --accent: 0 0% 8%;
+    --accent-foreground: 43 30% 96%;
+
+    --success: 152 40% 28%;
+    --success-foreground: 43 30% 96%;
+
+    --destructive: 6 58% 42%;
+    --destructive-foreground: 43 30% 96%;
+
+    --border: 38 16% 85%;
+    --input: 38 16% 85%;
+    --ring: 0 0% 20%;
+
+    --radius: 0.625rem;
+
+    /* Ink application sidebar */
+    --sidebar: 0 0% 6%;
+    --sidebar-foreground: 40 10% 70%;
+    --sidebar-active: 0 0% 14%;
+    --sidebar-border: 0 0% 16%;
+
+    --hero-from: 0 0% 7%;
+    --hero-to: 0 0% 20%;
+
+    --gold: 38 42% 46%;
+    --gold-light: 38 46% 60%;
+    --gold-dark: 38 42% 34%;
+
+    --shadow-sm: 0 1px 2px 0 hsl(30 20% 10% / 0.06);
+    --shadow-md: 0 6px 24px -10px hsl(30 20% 10% / 0.14);
+    --shadow-lg: 0 30px 70px -30px hsl(30 20% 10% / 0.28);
+    --shadow-glow: 0 0 0 1px hsl(0 0% 8% / 0.06);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    @apply bg-background text-foreground font-body antialiased;
+    overflow-x: hidden;
+    max-width: 100vw;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  img, svg, video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-body font-semibold tracking-tight;
+    letter-spacing: -0.015em;
+  }
+}
+
+@layer components {
+  .serif {
+    font-family: 'Lora', ui-serif, Georgia, serif;
+    letter-spacing: -0.01em;
+  }
+  .mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  .glass {
+    @apply bg-background/75 backdrop-blur-xl border border-border;
+  }
+  .surface {
+    @apply bg-card border border-border rounded-xl;
+  }
+  .card-lift {
+    @apply transition-all duration-200 ease-out;
+  }
+  .card-lift:hover {
+    box-shadow: var(--shadow-md);
+    border-color: hsl(var(--foreground) / 0.28);
+    transform: translateY(-1px);
+  }
+  .eyebrow {
+    @apply text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground;
+  }
+  .grid-bg {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.7) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.7) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
